@@ -9,15 +9,16 @@
 typedef sem_t lock_t;
 
 void init_lock(lock_t *l) {
-	// TODO:
+	sem_init(l, 0, 1);
 }
 
 void acquire_lock(lock_t *l) {
-	// TODO:
+	sem_wait(l);
+	// now we have the lock
 }
 
 void release_lock(lock_t *l) {
-	// TODO:
+	sem_post(l);
 }
 
 // global lock...
@@ -32,12 +33,16 @@ long iters = 100000;
 // The function that will run
 void *thread_function(void *arg) {
   for (int i = 0; i < iters; i++) {
+		acquire_lock(&data_lock);
     data += 1;
+		release_lock(&data_lock);
   }
   return NULL;
 }
 
 int main(int argc, char **argv) {
+
+	init_lock(&data_lock);
   // we expect `data` to be (nthreads * iters)
   pthread_t threads[nthreads];
 

@@ -11,7 +11,7 @@
 #include "./threads.h"
 
 // the maximum amount of work allowed in the stack
-#define WORK_COUNT 500
+#define WORK_COUNT 50000
 // the number of worker threads
 #define NTHREADS 8
 // a magic work value indicating we are done with work
@@ -25,10 +25,12 @@ long work_done = 0; // how much work has completed
 
 void worker_notify(void) {
   // TODO: using a semaphore, notify the workers of the work in the stack
+	sem_post(&work_sem); // increment the semaphore, waking up anyone who was waiting
 }
 
 void worker_wait(void) {
   // TODO: using a semaphore, wait for work to be availabe
+	sem_wait(&work_sem);
 }
 
 void post_work(int work) {
@@ -54,14 +56,14 @@ void *thread_function(void *arg) {
   // create a "thread id" (ignore if you want to)
   static int next_tid = 0;
   int my_tid = atomic_fetch_and_add(&next_tid, 1);
-  printf("start thread %d\n", my_tid);
+  // printf("start thread %d\n", my_tid);
 
   while (1) {
     int work = get_work();
     if (work == WORK_DONE)
       break;
     do_work(work);
-    printf("thread %d finished %d\n", my_tid, work);
+    // printf("thread %d finished %d\n", my_tid, work);
     atomic_fetch_and_add(&work_done, 1); // record that the work completed
   }
   printf("thread %d done!\n", my_tid);
@@ -71,9 +73,10 @@ void *thread_function(void *arg) {
 int main(int argc, char **argv) {
 
   // initialize the work stack
-  stack_init(&work_todo, 32);
+  stack_init(&work_todo, 512);
 
   // TODO: initialize the semaphore
+	sem_init(&work_sem, 0, 0); // 0 means there's no work yet.
 
   // we expect `data` to be (nthreads * iters)
   pthread_t threads[NTHREADS];
@@ -81,7 +84,7 @@ int main(int argc, char **argv) {
 
   // fire off a bunch of work
   for (int i = 0; i < WORK_COUNT; i++) {
-    post_work(rand() % 38); // post random work to be done
+    post_work(rand() % 40); // post random work to be done
     usleep(1000); // sleep for a bit before posting the next bit of work
   }
 
