@@ -1,3 +1,9 @@
+
+
+// This file is a simple concurrent (using a mutex) stack. Muliple threads can
+// push to and pop from the stack. It is constructed with a max size, and
+// pushing will wait until there is space available.
+
 #pragma once
 
 #include "atomic.h" // from pclab
@@ -28,6 +34,8 @@ static inline void stack_push(stack_t *st, int val) {
 		if (st->head < st->len) {
 			break;
 		}
+		// TODO: if you want to learn some more, look into how you would
+		// use a semaphore to more efficiently wait here.
 		pthread_mutex_unlock(&st->lock); // let someone else pop from the stack
 	}
 	st->data[st->head++] = val;
