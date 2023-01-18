@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <semaphore.h>
+#include "./threads.h"
 
 // define a new lock type. In this case, we'll
 // define it in terms of a semaphore.
